@@ -1,0 +1,52 @@
+---
+# Tasks to setup a loopback device and mount it as a volume
+
+- name: Create data directory
+  file:
+    path: "{{item}}"
+    state: directory
+  with_items: [ "/data","/mnt/disks/vol1"]
+
+- name: Unmount old loopback device
+  shell: >
+    losetup -D
+
+- name: Remove old loopback file if it exists
+  file:
+    path: /data/lookback.img
+    state: absent
+
+- name: Create new loopback file
+  shell: >
+    dd if=/dev/zero of=/data/loopback.img bs="{{blocksize}}" count="{{blockcount}}"
+  register: loop_img_created
+
+- name: Create loop device
+  shell: >
+    losetup -fP /data/loopback.img
+  register: loop_device_created
+
+- name: Print loop device
+  shell: >
+    losetup -a
+
+- name: Create ext4 filesystem
+  filesystem:
+    fstype: ext4
+    dev: /dev/loop0
+  register: loop_filesystem_created
+
+- name: Mount loopback filesystem
+  mount:
+    path: /mnt/disks/vol1
+    src: /dev/loop0
+    fstype: ext4
+    opts: loop
+    state: present
+  register: loop_filesystem_mounted
+
+- name: Verify filesystem size
+  shell: >
+    df -hP /mnt/disks/vol1
+
+

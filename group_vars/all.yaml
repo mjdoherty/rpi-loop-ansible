@@ -1,0 +1,8 @@
+# Global variables
+
+# Define blocksize and blockcount for dd
+blocksize: 100M
+blockcount: 100
+
+# Define volsize to match dd
+volsize: 10Gi
